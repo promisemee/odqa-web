@@ -1,0 +1,18 @@
+## path configs
+reader_path: ./assets/mrc_task/
+data_path: ./assets/mrc_data/
+context_path: "wikipedia_documents_cleaned.json"
+
+## model configs
+tokenizer_name: "klue/roberta-large"
+config_name: "klue/roberta-large"
+
+## data configs
+max_answer_length: 30
+top_k_retrieval: 5
+doc_stride: 128
+pad_to_max_length: False
+preprocessing_num_workers: None
+overwrite_cache: False
+max_seq_length: 384
+num_clusters: 64

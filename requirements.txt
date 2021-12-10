@@ -1,0 +1,12 @@
+streamlit==1.1.0
+torch==1.10.0
+PyYAML==6.0
+transformers==4.5.0
+pandas==1.1.4
+numpy==1.21.3
+datasets==1.5.0
+tqdm
+pororo
+tweepy==3.10.0
+rank_bm25
+sklearn
