@@ -11,12 +11,16 @@ from transformers import (
     AutoConfig,
     AutoTokenizer,
     HfArgumentParser,
-    TrainingArguments,
 )
+
+from argument import TrainingArguments
 
 from reader import run_mrc
 from model import CustomModel
 from retriever import SparseRetrieval_BM25
+
+import re
+
 
 def load_tokenizer(config):
     tokenizer = AutoTokenizer.from_pretrained(
@@ -44,7 +48,6 @@ def load_reader(config):
     return model
 
 def load_retriever(config, tokenizer):
-    print(config["data_path"], config["context_path"])
     retriever = SparseRetrieval_BM25(
         tokenize_fn=tokenizer, data_path=config["data_path"], context_path=config["context_path"]
     )
@@ -52,14 +55,12 @@ def load_retriever(config, tokenizer):
 
     return retriever
 
-
-
 def get_prediction(tokenizer, reader, retriever, question, config):
     # retrieve passage
-    _, context_list = retriever.retrieve(question, topk=config.top_k_retrieval)
+    _, context_list = retriever.retrieve(question, topk=config["top_k_retrieval"])
 
     df = pd.DataFrame({
-                "context": [" ".join(
+                "context": ["###".join(
                     [context for context in context_list]
                 )],
                 "question": [question],
@@ -70,7 +71,20 @@ def get_prediction(tokenizer, reader, retriever, question, config):
 
     # read passage
     parser = HfArgumentParser(TrainingArguments)
-    training_args, _ = parser.parse_args_into_dataclasses(return_remaining_strings=True)
+    training_args = parser.parse_args_into_dataclasses()[0]
+    training_args.do_train = True
     prediction = run_mrc(config, training_args, datasets, tokenizer, reader)
 
     return prediction
+
+def get_text(context, start_logit, end_logit):
+    new_context = context[:end_logit] + "@@@" + context[end_logit:]
+    context_split = new_context.split("###")
+    for context in context_split:
+        if '@@@' in context:
+            re.sub("@@@", "", context)
+            return clean_text(context)
+
+def clean_text(text):
+    context_split = text.split("#")
+    return "#".join(context_split[2:])

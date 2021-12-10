@@ -48,11 +48,11 @@ def run_mrc(
             examples[context_column_name if pad_on_right else question_column_name],
             truncation="only_second" if pad_on_right else "only_first",
             max_length=max_seq_length,
-            stride=configs.doc_stride,
+            stride=configs["doc_stride"],
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
             return_token_type_ids=False, # roberta모델을 사용할 경우 False, bert를 사용할 경우 True로 표기해야합니다.
-            padding="max_length" if configs.pad_to_max_length else False,
+            padding="max_length" if configs["pad_to_max_length"] else False,
         )
 
         # 길이가 긴 context가 등장할 경우 truncate를 진행해야하므로, 해당 데이터셋을 찾을 수 있도록 mapping 가능한 값이 필요합니다.
@@ -85,9 +85,9 @@ def run_mrc(
     eval_dataset = eval_dataset.map(
         prepare_validation_features,
         batched=True,
-        num_proc=configs.preprocessing_num_workers,
+        num_proc=configs["preprocessing_num_workers"],
         remove_columns=column_names,
-        load_from_cache_file=not configs.overwrite_cache,
+        load_from_cache_file=not configs["overwrite_cache"],
     )
 
     # Data collator
@@ -109,7 +109,7 @@ def run_mrc(
             examples=examples,
             features=features,
             predictions=predictions,
-            max_answer_length=configs.max_answer_length,
+            max_answer_length=configs["max_answer_length"],
             output_dir=training_args.output_dir,
         )
         # Metric을 구할 수 있도록 Format을 맞춰줍니다.
@@ -117,8 +117,7 @@ def run_mrc(
             {"id": k, "prediction_text": v} for k, v in predictions.items()
         ]
 
-        if training_args.do_predict:
-            return formatted_predictions
+        return formatted_predictions
 
     metric = load_metric("squad")
 
@@ -140,9 +139,8 @@ def run_mrc(
     )
 
     #### eval dataset & eval example - predictions.json 생성됨
-    if training_args.do_predict:
-        predictions = trainer.predict(
-            test_dataset=eval_dataset, test_examples=datasets["validation"]
-        )
+    predictions = trainer.predict(
+        test_dataset=eval_dataset, test_examples=datasets["validation"]
+    )
 
     return predictions

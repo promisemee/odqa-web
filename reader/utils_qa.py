@@ -319,7 +319,7 @@ def check_no_error(
             "requirement"
         )
 
-    max_seq_length = min(configs.max_seq_length, tokenizer.model_max_length)
+    max_seq_length = min(configs["max_seq_length"], tokenizer.model_max_length)
 
     if "validation" not in datasets:
         raise ValueError("--do_eval requires a validation dataset")
